@@ -1,0 +1,368 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:WindowedApplication 
+	xmlns:mx="http://www.adobe.com/2006/mxml" 
+	layout="absolute"
+	width="{Util.getWidth(app.edgeL, app.rotation, app.edgeD)}" 
+	height="{app.height}" 
+	autoExit="true"
+	showGripper="false" showTitleBar="false" showStatusBar="false"
+	creationComplete="init()" xmlns:cc="cc.*" 
+	horizontalScrollPolicy="off" verticalScrollPolicy="off" >
+	
+	<mx:Script>
+		<![CDATA[
+			import com.nitobi.view.UpdateAlert;
+			import com.nitobi.managers.UpdateManager;
+			import com.nitobi.event.MaskEvent;
+			import com.nitobi.event.BlinkEvent;
+			import gs.TweenLite;
+			import com.nitobi.event.VibrateEvent;
+			import com.nitobi.view.DebugPanel;
+			import com.nitobi.Const;
+			import com.nitobi.Util;
+			import com.nitobi.PhoneGapSimulatorApp;
+			import com.nitobi.CustomHost;
+			import com.nitobi.view.URLModal;
+			import mx.managers.PopUpManager;
+			import mx.rpc.http.HTTPService;
+			import mx.rpc.events.ResultEvent;
+			
+			[Bindable]
+			private var app:PhoneGapSimulatorApp = PhoneGapSimulatorApp.getInstance();
+			
+			[Bindable]
+			private var vibrateFilter:BlurFilter = new BlurFilter(1, 5);
+			
+			private var viveLen:int = 0;
+			
+			[Bindable]
+			private var blink:Boolean = false;
+			
+			[Bindable]
+			private var blinkColor:uint;
+			
+			private var blinkLen:int = 0;
+			
+			private function init():void
+			{
+				loadXML();
+				app.html = pageLoader;
+				debug();
+				//app.debug.open();
+				trace(this.nativeApplication.applicationID, nativeApplication.applicationDescriptor.children()[3]);
+				
+				// Linsteners
+				app.addEventListener(VibrateEvent.VIBRATE_EVENT_START, onVibrate);
+				app.addEventListener(BlinkEvent.BLINK_START, onBlink);
+				app.addEventListener(MaskEvent.REDRAW_MASK, onRedrawMask)
+				
+				//app.checkForUpdate();
+				app.updateManager.addEventListener(UpdateManager.EVENT_UPDATE_AVAILABLE,onUpdateAvailable);
+				app.updateManager.addEventListener(UpdateManager.EVENT_UPDATE_READY,onUpdateReady);
+				
+				var fileText:String = File.applicationDirectory.nativePath.replace(/\\/g, "/");
+				app.currentURL = 'file://' + fileText + '/www/index.html';
+				
+				addEventListener(Event.CLOSE, onClose);
+			}
+			
+			public function onUpdateAvailable(evt:Event):void
+			{
+				app.updateManager.downloadUpdate();
+			}
+			
+			public function onUpdateReady(evt:Event):void
+			{
+				// TODO: Localize
+				var alert:UpdateAlert = new UpdateAlert();
+				alert.message = "An update has been downloaded. The application will now exit to install the update.";
+				alert.titleText = "Update Ready";
+				alert.addEventListener(Event.REMOVED,alertReadyClickHandler);
+				alert.func = app.updateManager.installUpdate;
+				PopUpManager.addPopUp(alert,this,true);
+				PopUpManager.centerPopUp(alert);
+			}
+			
+			public function alertReadyClickHandler(evt:Event):void
+			{
+				//app.updateManager.installUpdate();
+			}
+			
+			private function onRedrawMask(e:MaskEvent):void
+			{
+				redrawMask();
+			}
+			
+			
+			// Vibrate methods
+			
+			public function onVibrate(e:VibrateEvent):void
+			{
+				viveLen = e.data;
+				addEventListener(Event.ENTER_FRAME, onEnterFrameVibrate);
+			}
+			
+			private function onEnterFrameVibrate(e:Event):void
+			{
+				const vibeStrength:int = 20;
+				
+				vibrateFilter.blurX = Math.random()*vibeStrength;
+				vibrateFilter.blurY = Math.random()*vibeStrength;
+				filters = [vibrateFilter];
+				
+				viveLen--;
+				if (viveLen <=0) removeVibrate();
+			}
+			
+			private function removeVibrate():void
+			{
+				removeEventListener(Event.ENTER_FRAME, onEnterFrameVibrate);
+				filters = [];
+			}
+			
+			
+			// Blink methods
+			
+			public function onBlink(e:BlinkEvent):void
+			{
+				blinkColor = e.data.color;
+				blinkLen = e.data.count;
+				addEventListener(Event.ENTER_FRAME, onEnterFrameBlink);
+			}
+			
+			private function onEnterFrameBlink(e:Event):void
+			{
+				blink = !blink;
+				
+				blinkLen--;
+				if (blinkLen <=0) removeBlink();
+			}
+			
+			private function removeBlink():void
+			{
+				removeEventListener(Event.ENTER_FRAME, onEnterFrameBlink);
+				blink = false;
+			}
+			
+			public function loadXML():void
+			{
+				var xmlService:HTTPService = new HTTPService();
+				xmlService.url = Const.SKIN_XML_URL;
+				xmlService.resultFormat = 'e4x';
+				xmlService.addEventListener(ResultEvent.RESULT, handleResult);
+				// TODO: Error handling
+				xmlService.send();
+			}
+			
+			private function handleResult(e:ResultEvent):void 
+			{
+				var xml:XML = e.result as XML;
+				Util.parseXML(xml);
+				Util.changeSkin(this, 'iPhone');
+				createContextMenu();
+			}
+			
+						
+			private function createContextMenu():void
+			{
+				var itemArray:Array = [];
+				
+				//itemArray.push( app.menuMain.addItem( new NativeMenuItem( Const.MENU_URL ) ) );
+				addMenuItemWithSeperator( Const.MENU_RELOAD );
+				
+				for each (var name:String in app.menuIdCollection)
+				{	
+					itemArray.push( app.menuSkin.addItem( new NativeMenuItem( name ) ) );
+				}
+				app.menuMain.addSubmenu( app.menuSkin, 'Skin' );
+								
+				//itemArray.push( app.menuMain.addItem( new NativeMenuItem( Const.MENU_DEMO ) ) );
+				
+				//addMenuItemWithSeperator( Const.MENU_DEBUG );
+								
+				itemArray.push( app.menuMain.addItem( new NativeMenuItem( Const.MENU_EXIT ) ) );
+				
+				for each (var item:NativeMenuItem in itemArray)
+				{
+					item.addEventListener(Event.SELECT, onSelect);
+				}
+				
+				function addMenuItemWithSeperator( title:String):void
+				{
+					itemArray.push( app.menuMain.addItem( new NativeMenuItem( title ) ) );
+					app.menuMain.addItem( new NativeMenuItem( '', true ) );
+				}
+				
+				dragLayer.contextMenu = app.menuMain;
+			}
+			
+			private function onSelect(e:Event):void
+			{
+				var selectedItem:NativeMenuItem = e.target as NativeMenuItem;
+				var caption:String = selectedItem.label;
+				
+				switch (caption)
+				{
+					
+					case Const.MENU_EXIT:
+						exit();
+						break;
+					
+					case Const.MENU_DEBUG:
+						debug();
+						break;
+					
+					case Const.MENU_RELOAD:
+						pageLoader.reload()
+						break;
+					
+					case Const.MENU_DEMO:
+						app.currentURL = 'www/index.html';
+						break;
+						
+					case Const.MENU_URL:
+						openURLModal();
+						break;
+					
+					default:						
+						Util.changeSkin(this, caption);
+						pageLoader.reload()
+						break;
+				}
+				
+			}
+			
+			private function openURLModal():void
+			{
+				var modal:URLModal = new URLModal;
+				PopUpManager.addPopUp( modal, this, true);
+				PopUpManager.centerPopUp(modal);
+			}
+			
+			private function debug():void
+			{
+				if (!app.debug.opened)
+				{
+					app.debug = new DebugPanel;
+					
+				}
+				
+				app.debug.type = NativeWindowType.UTILITY;
+				app.debug.open();
+				redrawMask();
+			}
+			
+			private function onClose(e:Event):void
+			{
+				exit();				
+			}
+			
+			private function redrawMask():void
+			{
+				var r:Number = app.cornerRadius;
+				var w:Number = app.horizontalOrientation ? app.screenHeight : app.screenWidth;
+				var h:Number = app.horizontalOrientation ? app.screenWidth-app.headerHeight : app.screenHeight-app.headerHeight;
+				displayMask.graphics.clear();
+				displayMask.graphics.beginFill(0xffff00);
+				
+				displayMask.graphics.moveTo(0, h-r);
+				displayMask.graphics.lineTo(0, r);
+				displayMask.graphics.curveTo(0, 0, r, 0);
+				displayMask.graphics.lineTo(w-r, 0);
+				displayMask.graphics.curveTo(w, 0, w, r);
+				
+				displayMask.graphics.lineTo(w, h-r);
+				displayMask.graphics.curveTo(w, h, w-r, h);
+				
+				displayMask.graphics.lineTo(r, h);
+				displayMask.graphics.curveTo(0, h, 0, h-r);
+				
+			}
+			
+		]]>
+	</mx:Script>
+	
+	<mx:Style source="assets/default.css" />
+	
+	<mx:Canvas id="adjustmentLayer"
+		x="{width/2}" y="{height/2}" clipContent="false"
+		horizontalScrollPolicy="off" verticalScrollPolicy="off">
+	
+		<mx:Canvas id="orientationLayer" 
+			rotation="{app.rotation}" clipContent="false"
+			horizontalScrollPolicy="off" verticalScrollPolicy="off">
+			
+			<mx:Canvas id="mainContainer"
+				styleName="{app.skinString}MainContainer"
+				x="{-width/2 + (width/2-app.width/2)}" y="{-height/2}"
+				width="{app.width}" height="{app.height}" clipContent="false"
+				horizontalScrollPolicy="off" verticalScrollPolicy="off">
+				
+				<mx:Canvas id="dragLayer" 
+					width="100%" height="100%" 
+					mouseDown="stage.nativeWindow.startMove()"/>
+			
+				<mx:Canvas id="mainScreen"
+					styleName="mainScreen" 
+					clipContent="true"
+					x="{app.screenX + app.screenOffsetX}" 
+					y="{app.screenY + app.screenOffsetY}" 
+					rotation="{app.screenRotation}"
+					width="{(!app.horizontalOrientation ? app.screenWidth : app.screenHeight)}" 
+					height="{(!app.horizontalOrientation ? app.screenHeight : app.screenWidth)}" >
+					
+					<mx:Canvas 
+						visible="{!app.horizontalOrientation}"
+						styleName="{app.skinString}HeaderPortrait"
+						height="{app.headerHeight}"
+						width="100%" />
+				
+					<mx:Canvas 
+						visible="{app.horizontalOrientation}"
+						styleName="{app.skinString}HeaderLandscape"
+						height="{app.headerHeight}"
+						width="100%" />
+					
+					<mx:Label 
+						width="{mainScreen.width-20}"
+						horizontalCenter="0" verticalCenter="0" 
+						textAlign="center"
+						htmlText="Loading {app.currentURL}"/>
+						
+					
+					<mx:HTML id="pageLoader" verticalScrollPolicy="off" horizontalScrollPolicy="off"
+						y="{app.headerHeight}"
+						width="100%" height="100%" 
+						visible="{!app.loading}"
+						htmlHost="{app.host}"  
+						userAgent="{app.userAgent}"
+						location="{app.currentURL}" 
+						mask="{displayMask}"
+						scaleX="{app.screenScale}" scaleY="{app.screenScale}" 
+						htmlDOMInitialize="app.domInitializer()"
+						complete="app.loading=false;app.checkHeader()"
+						locationChange="app.loading=true"/>
+					
+				
+					<mx:UIComponent id="displayMask"  
+						y="{app.headerHeight}"/>
+					
+					<mx:Canvas 
+						backgroundColor="{blinkColor}"
+						visible="{blink}" 
+						width="100%" height="100%"/>
+					
+				</mx:Canvas>
+					
+				<mx:Button id="button" 
+					styleName="{app.skinString}Button" 
+					x="161" y="627"
+					width="80" height="80"
+					click="pageLoader.reload()"/>
+				
+			</mx:Canvas>
+		</mx:Canvas>
+	</mx:Canvas>
+	
+	
+</mx:WindowedApplication>

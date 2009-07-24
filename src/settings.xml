@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<data>
+	
+	<skin id="IPHONE" 
+		skin="iPhone"
+		size="404,755" 
+		screen="42,139,320,480" 
+		button="161,627,80,80" 
+		header="20"
+		radius="0"
+		rotation="true">iPhone</skin>
+	
+	<skin id="ANDROID_G1" 
+		skin="androidG1" 
+		size="450,890" 
+		screen="61,122,320,480" 
+		button="187,740,56,56" 
+		header="20"
+		radius="0"
+		rotation="true">Android G1</skin>
+	
+	<skin id="BLACKBERRY_STORM" 
+		skin="blackberryStorm" 
+		size="464,802" 
+		screen="53,145,360,480" 
+		button="134,673,99,55" 
+		header="20"
+		radius="0"
+		rotation="true">Blackberry Storm</skin>
+	
+	<skin id="BLACKBERRY_BOLD" 
+		skin="blackberryBold" 
+		size="360,514" 
+		screen="61,97,240,160" 
+		scale="0.5"
+		button="157,273,48,48" 
+		header="0"
+		radius="0"
+		rotation="false">Blackberry Bold</skin>
+	
+	<skin id="PALM_PRE" 
+		skin="palmPre" 
+		size="458,769" 
+		screen="67,103,320,480" 
+		button="207,628,40,40" 
+		header="40"
+		radius="25"
+		rotation="false">Palm Pre</skin>
+		
+	<skin id="NOKIA_N97" 
+		skin="nokiaN97" 
+		size="248,508" 
+		screen="38,94,180,320" 
+		scale="0.5"
+		button="98,441,61,33" 
+		header="0"
+		radius="1"
+		rotation="true">Nokia N97</skin>
+		
+	<skin id="SUMSUNG_EPIX" 
+		skin="sumsungEpix" 
+		size="245,424" 
+		screen="44,42,160,160" 
+		scale="0.5"
+		button="102,239,44,44" 
+		header="0"
+		radius="2"
+		rotation="true">Sumsung Epix</skin>
+	
+	<url ><![CDATA[file://www/index.html]]></url>
+	<useragent><![CDATA[Mozilla/5.0 (iPhone; U; CPU like Mac OS X; en) AppleWebKit/420+ (KHTML, like Gecko) Version/3.0 Mobile/1A543a Safari/419.3]]></useragent>
+</data>

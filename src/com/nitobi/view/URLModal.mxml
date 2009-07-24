@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Panel xmlns:mx="http://www.adobe.com/2006/mxml" 
+	title="{Const.MENU_URL}"
+	autoLayout="true" 
+	paddingBottom="5" paddingLeft="5" paddingRight="5" paddingTop="5" 
+	creationComplete="init()">
+	
+	<mx:Script>
+		<![CDATA[
+			import com.nitobi.Const;
+			import com.nitobi.PhoneGapSimulatorApp;
+			import mx.managers.FocusManager;
+			import mx.managers.PopUpManager;
+			
+			private const w:Number = 220;
+			
+			private function init():void
+			{
+				focusManager.setFocus(urlInput);
+				focusManager.defaultButton = goButton;
+			}
+			
+			private function onClose():void
+			{
+				PopUpManager.removePopUp(this);
+			}
+			
+			private function onGo():void
+			{
+				var url:String = urlInput.text;
+				
+				/*if ( url.search('http://') == -1 )
+				{
+					url = 'http://' + url;
+				}*/
+
+				var model:PhoneGapSimulatorApp = PhoneGapSimulatorApp.getInstance();
+				model.currentURL = url;
+				
+				onClose();
+			}
+		]]>
+	</mx:Script>
+	
+	
+	<mx:HBox width="{w}">
+		<mx:Label text="URL:"/>
+		<mx:TextInput id="urlInput" width="100%"  text="http://"/>
+	</mx:HBox>
+	
+	<mx:HBox width="{w}" horizontalAlign="right">
+		<mx:Button label="Cancel" click="onClose()" />
+		<mx:Button id="goButton" label="Go" click="onGo()"/>
+	</mx:HBox>
+	
+	
+</mx:Panel>

@@ -1,0 +1,341 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Window xmlns:mx="http://www.adobe.com/2006/mxml" 
+	layout="vertical" 
+	width="{WINDOW_WIDTH + 20}" height="{WINDOW_HEIGHT + 30}" 
+	creationComplete="init()"
+	close="opened=false" 
+	resizable="false" 
+	showStatusBar="false" 
+	showGripper="false"  
+	verticalGap="0"
+	alwaysInFront="true" 
+	systemChrome="none"  
+	showTitleBar="false" 
+	showFlexChrome="false" 
+	maximizable="false"
+	transparent="true" xmlns:maps="com.google.maps.*">
+	
+	<mx:Script>
+		<![CDATA[
+			import com.google.maps.controls.MapTypeControl;
+			import com.google.maps.controls.ZoomControl;
+			import com.nitobi.Util;
+			import gs.easing.Quad;
+			import com.nitobi.Const;
+			import gs.TweenLite;
+			import flash.net.navigateToURL;
+			import com.nitobi.PhoneGapSimulatorApp;
+			import com.google.maps.InfoWindowOptions;
+			import com.google.maps.overlays.MarkerOptions;
+			import com.google.maps.LatLng;
+			import com.google.maps.MapEvent;
+			import com.google.maps.overlays.Marker;
+			import com.google.maps.MapMouseEvent;
+			import com.google.maps.Map;
+			
+			public static const WINDOW_HEIGHT:int = 420;
+			public static const WINDOW_WIDTH:int = 336;
+			public static const BUTTON_BAR_HEIGHT:int = 72;
+			
+			private const BUTTON_SIZE:Number = 48;
+			private const BUTTON_MIMI_SIZE:Number = 42;
+			private const BUTTON_HEIGHT:Number = 47;
+			
+			private const BUTTON_SIZE_SMALL:Number = 24;
+			
+			private const DECIMAL:int = 4;
+			
+			private const INTERVAL:int = 5;
+			
+			public var opened:Boolean = true;
+			
+			private var testPoint:Marker;
+			
+			[Bindable]
+			private var app:PhoneGapSimulatorApp;
+			
+			[Bindable]
+			private var mapMode:Boolean = false;
+			
+			[Bindable]
+			private var interactionPanel:InteractionPanel = new InteractionPanel;
+						
+			private function init():void
+			{
+				focusManager.defaultButton = goButton;
+				app = PhoneGapSimulatorApp.getInstance();
+				interactionContainer.addChild(interactionPanel);
+				addEventListener(Event.ENTER_FRAME, onUpdateAcceleration);
+				app.checkForUpdate();
+			}
+			
+			private function onUpdateAcceleration(e:Event):void
+			{				
+				app.accelerationX = -app.rotationY/90;
+				app.accelerationY = app.rotationX/90;
+				app.accelerationZ = (app.accelerationX + app.accelerationY)/2;
+				
+				app.updateDomAcceleration();
+			}
+			
+			private function rotate(clockwise:Boolean = true, dif:Number=45):void
+			{
+				TweenLite.killTweensOf(app);
+				var direction:Number = clockwise ? 1 : -1;
+				var angle:Number = app.rotation + dif*direction;
+				
+				if (angle >= 360) 
+				{	
+					angle = 0; 
+					app.rotation = -360 + app.rotation;
+				}
+				else if (angle <= -180)
+				{
+					angle = 180;
+					app.rotation = 180 + (180 + app.rotation);
+				}
+				TweenLite.to(app, Const.DUR_ROTATION,{ease: Quad.easeOut, rotation:angle})
+			}
+			
+			private function resetRotation(vertical:Boolean=true):void
+			{
+				TweenLite.killTweensOf(app);
+				
+				var angle:Number = vertical ? 0 : 270;
+				
+				if (!vertical && app.rotation < 90) angle = -90;
+				else if (vertical && app.rotation > 180) app.rotation = -180 - (180 - app.rotation);
+												
+				TweenLite.to(app, Const.DUR_RESET_ROTATION,{ease: Quad.easeOut, rotation:angle})
+			}
+			
+			private function onMenuClick():void
+			{
+				app.menuMain.display(this.stage, mouseX, mouseY);
+			}
+			
+			private var marker:Marker;
+			
+			// Google maps API			
+			private function onMapReady(event:Event):void
+			{
+				var latLng:LatLng = app.latLng;
+				map.setCenter(latLng, 14);
+				map.addEventListener(MapMouseEvent.CLICK, onMapClick);
+			 	marker = new Marker( latLng);
+				map.addOverlay(marker);      
+				map.addControl(new ZoomControl );
+				app.updateGeolocation(latLng);
+			}
+			
+			private function onMapClick(event:MapMouseEvent):void 
+			{
+				marker.setLatLng(event.latLng);
+				app.updateGeolocation(event.latLng);
+			}
+			
+			private function onGo():void
+			{
+				var url:String = urlInput.text;
+				url = url.replace(/\\/g, "/");
+				if (app.currentURL == url) app.html.reload();
+				app.currentURL = url;
+			}
+			
+			private function onBrowse():void
+			{
+				var split:Array = PhoneGapSimulatorApp.ALLOWED_EXTENSIONS.split('|');
+				var allowedExtension:String = '';
+				for each (var s:String in split)
+				{
+					allowedExtension = allowedExtension + '*.' + s + ';';
+				}
+				var file:File = new File;
+				file.browse([new FileFilter('Documents',allowedExtension)]);
+				file.addEventListener(Event.SELECT, onFileSelect);
+			}
+			
+			private function onFileSelect(e:Event):void
+			{
+				var selectedFile:File = e.target as File;
+				
+				app.currentURL = 'file://' + selectedFile.nativePath.replace(/\\/g, "/");
+			}
+			
+			private function onKeyDown(e:KeyboardEvent):void
+			{
+				trace(e.keyCode);
+				if (e.keyCode == 13) onGo();
+			}
+			
+						
+		]]>
+	</mx:Script>
+	<mx:VBox id="wrapper" backgroundImage="assets/debug/main_body.png"
+		width="100%" height="100%" verticalGap="0" filters="{[Const.FILTER_DROPSHADOW]}">
+		
+		<mx:Canvas id="header" 
+			styleName="debugHeader" 
+			width="100%" height="24"
+			mouseDown="stage.nativeWindow.startMove()">
+			
+		
+			<mx:Button 
+				visible="false"
+				id="closeButton" 
+				styleName="buttonClose" 
+				top="4"
+				width="12" height="12" 
+				click="close()"/>
+				
+			<mx:Label text="Debug Panel" fontWeight="bold" horizontalCenter="0" verticalCenter="1" />
+			
+		</mx:Canvas>
+		
+		<mx:HBox id="browser" 
+			horizontalGap="0"
+			width="100%" height="42">
+			
+			<mx:HBox width="100%" height="100%"
+				paddingTop="10" paddingBottom="10"
+				paddingLeft="9" paddingRight="6">
+				
+			
+			<mx:TextInput 
+				id="urlInput"
+				borderStyle="none"
+				backgroundAlpha="0" 
+				paddingTop="3"
+				width="100%" height="100%"
+				text="{app.currentURL}" 
+				keyDown="onKeyDown(event)"/>
+				
+			</mx:HBox>
+			
+			<mx:Button id="goButton"
+				styleName="buttonGo" 
+				click="onGo()"
+				width="{BUTTON_MIMI_SIZE-1}" 
+				height="{BUTTON_MIMI_SIZE}"
+				creationComplete="Util.addRollOverFlowEffect(event)" />
+			
+			<mx:Button id="browseButton"
+				styleName="buttonFile" 
+				click="onBrowse()"
+				width="{BUTTON_MIMI_SIZE-1}" 
+				height="{BUTTON_MIMI_SIZE}"
+				creationComplete="Util.addRollOverFlowEffect(event)" />
+			
+		</mx:HBox>
+		
+		<mx:HBox id="buttonBar"
+			styleName="debugButtonBar"
+			width="100%" height="{BUTTON_SIZE-1}">
+			
+			<mx:Button
+				id="portraitButton" 
+				styleName="buttonVertical"
+				enabled="{app.rotationEnabled}" 
+				alpha="{portraitButton.enabled ? 1 : 0.3}"
+				creationComplete="Util.addRollOverFlowEffect(event)"
+				width="{BUTTON_SIZE}" height="{BUTTON_HEIGHT}" 
+				click="resetRotation()"/>
+			
+			<mx:Button 
+				id="landScapeButton"
+				enabled="{app.rotationEnabled}" 
+				alpha="{landScapeButton.enabled ? 1 : 0.3}"
+				styleName="buttonHorizontal"
+				creationComplete="Util.addRollOverFlowEffect(event)"
+				width="{BUTTON_SIZE}" height="{BUTTON_HEIGHT}" 
+				click="resetRotation(false)"/>
+				
+			<mx:Button styleName="buttonMap" 
+				creationComplete="Util.addRollOverFlowEffect(event)"
+				width="{BUTTON_SIZE}" height="{BUTTON_HEIGHT}"
+				click="mapMode = !mapMode"/>
+			
+			<mx:Button styleName="buttonVibe"
+				creationComplete="Util.addRollOverFlowEffect(event)"
+				width="{BUTTON_SIZE}" height="{BUTTON_HEIGHT}"
+				click="app.vibrate()"/>
+				
+			<mx:Button styleName="buttonSound" 
+				creationComplete="Util.addRollOverFlowEffect(event)"
+				width="{BUTTON_SIZE}" height="{BUTTON_HEIGHT}"
+				click="app.beep()"/>
+				
+			<mx:Button styleName="buttonCamera"
+				alpha="0.3" enabled="false"
+				width="{BUTTON_SIZE}" height="{BUTTON_HEIGHT}"/>
+			
+			<mx:Button styleName="buttonFireBug"
+				creationComplete="Util.addRollOverFlowEffect(event)"
+				width="{BUTTON_SIZE}" height="{BUTTON_HEIGHT}"
+				click="app.loadFireBug()" />
+			
+		</mx:HBox>
+		
+		<mx:Canvas id="main"
+			styleName="debugBody" 
+			width="100%" height="100%">
+			
+			<!-- Acceleration indicator -->
+			<mx:VBox top="8" right="4" width="85">
+				
+				<mx:Label text="Accelerometer" styleName="labelWhite" />
+				<mx:Spacer/>
+				
+				<mx:Label text="X: {app.accelerationX.toFixed(DECIMAL)}" 
+					styleName="labelWhite"/>
+					
+				<mx:Label text="Y: {app.accelerationY.toFixed(DECIMAL)}" 
+					styleName="labelWhite"/>
+					
+				<mx:Label text="Z: {app.accelerationZ.toFixed(DECIMAL)}" 
+					styleName="labelWhite"/>
+				
+			</mx:VBox>
+			
+			<mx:UIComponent id="interactionContainer"
+				visible="{!mapMode}"
+				width="{main.width}" height="{main.height-BUTTON_SIZE-24}"/>		
+			
+			
+			<mx:Button id="menuButton" 
+				styleName="buttonMenu"
+				creationComplete="Util.addRollOverFlowEffect(event)"
+				left="8" top="8"
+				click="onMenuClick()" />
+
+			
+			<!-- Footer -->
+			
+			<mx:HBox right="0" bottom="0" horizontalGap="0">
+			
+			<mx:Button styleName="buttonPhoneGap"
+				creationComplete="Util.addRollOverFlowEffect(event)"
+				width="{70}" height="{BUTTON_SIZE_SMALL}"
+				click="navigateToURL(new URLRequest(Const.PHONEGAP_URL) );"/>
+				
+			<mx:Button styleName="buttonNitobi"
+				creationComplete="Util.addRollOverFlowEffect(event)"
+				width="{BUTTON_SIZE_SMALL}" height="{BUTTON_SIZE_SMALL}" 
+				click="navigateToURL(new URLRequest(Const.NITOBI_URL) );"/>
+				
+			</mx:HBox>
+
+
+			<maps:Map xmlns:maps="com.google.maps.*" 
+				id="map"
+				visible="{mapMode}"
+				url="http://localhost"
+				mapevent_mapready="onMapReady(event)" 
+  				width="100%" height="100%"
+  				key="ABQIAAAA7QUChpcnvnmXxsjC7s1fCxQGj0PqsCtxKvarsoS-iqLdqZSKfxTd7Xf-2rEc_PC9o8IsJde80Wnj4g"/>
+  				
+		</mx:Canvas>
+	
+	</mx:VBox>
+	
+</mx:Window>

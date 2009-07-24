@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:VBox
+	xmlns:mx="http://www.adobe.com/2006/mxml" 
+	filters="{[Const.FILTER_DROPSHADOW]}"
+	backgroundImage="assets/debug/alert_window.png"
+	paddingBottom="12" 
+	paddingLeft="10" paddingRight="10" 
+	paddingTop="8"
+	width="212" height="180">
+	
+	<mx:Script>
+		<![CDATA[
+		import com.nitobi.Const;
+			
+		import mx.managers.PopUpManager;
+			
+		[Bindable]
+		public var titleText:String;
+		
+		[Bindable]
+		public var message:String;
+		
+		[Bindable]
+		public var btnText:String = "OK";
+		
+		public var func:Function;
+		
+		public function onOKClick():void
+		{
+			PopUpManager.removePopUp(this);
+			func.call(null);
+		}
+		
+		]]>
+	</mx:Script>
+	
+	<mx:Canvas id="header"
+			styleName="debugHeader" 
+			width="100%" height="24"
+			mouseDown="stage.nativeWindow.startMove()">
+				
+			<mx:Label
+				 fontSize="11"
+				fontWeight="bold" 
+				horizontalCenter="0" 
+				verticalCenter="1"
+				text="{titleText}" />
+			
+		</mx:Canvas>
+	
+	<mx:VBox width="100%" height="100%"
+		paddingBottom="16" paddingLeft="8" paddingRight="8" paddingTop="8">
+		
+		<mx:Text id="messageText" 
+			color="0xffffff"
+				 fontSize="11"
+			width="100%"
+			text="{message}" />
+		
+		<mx:VBox height="100%" width="100%" verticalAlign="bottom" horizontalAlign="center">
+			<mx:Button id="okBtn"
+				paddingLeft="{10}" paddingRight="{10}"
+				label="{btnText}" click="onOKClick()"/>
+		</mx:VBox>
+	</mx:VBox>
+	
+</mx:VBox>

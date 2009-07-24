@@ -1,0 +1,195 @@
+/* CSS file */
+
+WindowedApplication{
+	fontFamily: Arial;
+	borderStyle: none; 
+	backgroundAlpha: 0;
+	modalTransparency: 0;
+	modalTransparencyBlur: 5;
+}
+
+WindowedApplication, Window {
+	color: #333;	
+}
+
+.mainScreen
+{
+	borderStyle: none;
+}
+
+
+.iPhoneMainContainer{	
+	backgroundImage: Embed( "assets/skin/iphone/main.png");
+}
+.iPhoneButton{
+	skin: Embed( "assets/skin/iphone/button.png");
+	downSkin: Embed( "assets/skin/iphone/button_down.png");	
+}
+.iPhoneHeaderPortrait{	
+	backgroundImage: Embed( "assets/skin/iphone/header_portrait.png");
+}
+.iPhoneHeaderLandscape{	
+	backgroundImage: Embed( "assets/skin/iphone/header_landscape.png");
+}
+
+
+.androidG1MainContainer{	
+	backgroundImage: Embed( "assets/skin/android_g1/main.png");
+}
+.androidG1Button{
+	skin: Embed( "assets/skin/android_g1/button.png");
+	downSkin: Embed( "assets/skin/android_g1/button_down.png");	
+}
+.androidG1HeaderPortrait{	
+	backgroundImage: Embed( "assets/skin/android_g1/header_portrait.png");
+}
+.androidG1HeaderLandscape{	
+	backgroundImage: Embed( "assets/skin/android_g1/header_landscape.png");
+}
+
+.blackberryStormMainContainer{	
+	backgroundImage: Embed( "assets/skin/blackberry_storm/main.png");
+}
+.blackberryStormButton{
+	skin: Embed( "assets/skin/blackberry_storm/button.png");
+	downSkin: Embed( "assets/skin/blackberry_storm/button.png");	
+}
+.blackberryStormHeaderPortrait{	
+	backgroundImage: Embed( "assets/skin/blackberry_storm/header_portrait.png");
+}
+.blackberryStormHeaderLandscape{	
+	backgroundImage: Embed( "assets/skin/blackberry_storm/header_landscape.png");
+}
+
+
+
+.blackberryBoldMainContainer{	
+	backgroundImage: Embed( "assets/skin/blackberry_bold/main.png");
+}
+.blackberryBoldButton{
+	skin: Embed( "assets/skin/blackberry_bold/button.png");
+	downSkin: Embed( "assets/skin/blackberry_bold/button_down.png");	
+}
+
+
+.palmPreMainContainer{	
+	backgroundImage: Embed( "assets/skin/palm_pre/main.png");
+}
+.palmPreButton{
+	skin: Embed( "assets/skin/palm_pre/button.png");
+	downSkin: Embed( "assets/skin/palm_pre/button_down.png");	
+}
+.palmPreHeaderPortrait{	
+	backgroundImage: Embed( "assets/skin/palm_pre/header_portrait.png");
+}
+
+.nokiaN97MainContainer{	
+	backgroundImage: Embed( "assets/skin/nokia_n97/main.png");
+}
+.nokiaN97Button{
+	skin: Embed( "assets/skin/nokia_n97/button.png");
+	downSkin: Embed( "assets/skin/nokia_n97/button.png");	
+}
+
+.sumsungEpixMainContainer{	
+	backgroundImage: Embed( "assets/skin/sumsung_epix/main.png");
+}
+.sumsungEpixButton{
+	skin: Embed( "assets/skin/sumsung_epix/button.png");
+	downSkin: Embed( "assets/skin/sumsung_epix/button.png");	
+}
+
+/* Debug Panel */
+
+DebugPanel {
+	paddingTop: 10; paddingBottom: 20;
+	paddingLeft: 10; paddingRight: 10;
+	borderStyle: none; 
+	backgroundAlpha: 0;
+}
+
+.debugHeader {
+	backgroundSize: "100%";
+}
+
+.debugBody {
+	backgroundSize: "100%";
+}
+
+.debugButtonBar {
+	horizontalGap: 0;
+	bottom: 24;
+}
+
+.buttonVertical, .buttonHorizontal, .buttonRotateC, .buttonRotateCCW,
+.buttonNitobi, .buttonPhoneGap, .buttonVibe, .buttonSound, .buttonCamera, 
+.buttonMenu, .buttonMap, .buttonGo, .buttonFile, .buttonFireBug {
+	skin: ClassReference(null);
+}
+
+.buttonVertical {
+	icon: Embed( "assets/debug/icon_vertical.png"); 		
+}
+
+.buttonHorizontal {
+	icon: Embed( "assets/debug/icon_horizontal.png"); 		
+}
+
+.buttonRotateC {
+	icon: Embed( "assets/debug/icon_rotate_c.png"); 	
+}
+
+.buttonRotateCCW {
+	icon: Embed( "assets/debug/icon_rotate_ccw.png"); 	
+}
+
+.buttonVibe {
+	icon: Embed( "assets/debug/icon_vibe.png"); 	
+}
+
+.buttonSound {
+	icon: Embed( "assets/debug/icon_sound.png"); 	
+}
+
+.buttonCamera {
+	icon: Embed( "assets/debug/icon_camera.png"); 	
+}
+
+.buttonMap {
+	icon: Embed( "assets/debug/icon_map.png"); 	
+}
+
+.buttonNitobi {
+	icon: Embed( "assets/debug/logo_nitobi.png"); 	
+}
+
+.buttonGo {
+	icon: Embed( "assets/debug/icon_go.png"); 	
+}
+
+.buttonFile {
+	icon: Embed( "assets/debug/icon_file.png"); 	
+}
+
+.buttonFireBug {
+	icon: Embed( "assets/debug/icon_firebug.png"); 	
+}
+
+.buttonPhoneGap {
+	icon: Embed( "assets/debug/logo_phonegap.png"); 	
+}
+
+
+.buttonClose {
+	top: 6;	left: 6;
+	skin: Embed( "assets/debug/button_close.png"); 
+	overSkin: Embed( "assets/debug/button_close_over.png"); 
+}
+
+.buttonMenu {
+	skin: Embed( "assets/debug/button_menu.png"); 
+}
+
+.labelWhite {
+	color: #fff;
+}
